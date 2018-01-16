@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.contrib.auth import login, logout
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic import CreateView
 
@@ -10,4 +10,4 @@ class SignUp(CreateView):
     # Once someone has signed up successfully, revese them to the login page
     # reverse_lazy instead of just reverse to let them sign up first
     success_url = reverse_lazy('login')
-    template_name = 'accouonts/signup.html'
+    template_name = 'accounts/signup.html'
