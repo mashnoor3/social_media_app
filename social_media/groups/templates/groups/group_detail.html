@@ -1,0 +1,40 @@
+{% extends "groups/group_base.html" %}
+
+{% block pregroup %}
+
+<!-- Using template syntax. Recall using class based veiws, a context dictionary gets passed. Holds everything that the mdoel has.   -->
+<!-- group has to be the same name as the model, lower case. THen can access the attributes of the model, ie name -->
+<h1>{{group.name}}</h1>
+<!-- again referning an attribute of the model; members. Then calling the count method. Many methods available to model objects -->
+<h2>Member Count: {{group.members.count}}</h2>
+
+<div class="content">
+  {% if user in group.members.all %}
+    <!-- option to leave the group -->
+    <a href="{%url 'groups:leave'} slug=group.slug %" class="btn btn-lg btn-fill btn-warning">
+      <span class="glyphicon glyphicon-remove-circle"></span>Leave
+    </a>
+  {% else %}
+  <a href="{%url 'groups:join'} slug=group.slug %" class="btn btn-lg btn-fill btn-warning">
+    <span class="glyphicon glyphicon-join-circle"></span>Join
+  </a>
+  {% endif %}
+
+</div>
+
+{% endblock %}
+
+
+{% block group_content %}
+<div class="col-md-8">
+  {% if group.posts.count == 0 %}
+    <h2>No posts in this group yet</h2>
+  {% else %}
+    {% for post in group.posts.all %}
+      <!-- include is kind of like the "extends" but it is in the middle of the HTML file  -->
+      <!-- so injecting an HTML file -->
+      {% include "posts/_post.html" %}
+  {% endif %}
+
+</div>
+{% endblock %}
