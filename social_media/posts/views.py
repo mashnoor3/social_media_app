@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse_lazy
+from django.contrib import messages
 
 from django.http import Http404
 from django.views import generic
@@ -29,7 +30,7 @@ class UserPosts(generic.ListView):
         try:
             # set user of this post to the user's objects and prefetch the user's posts
             # bascially feth posts that are related to the user
-            self.post.user = User.objects.prefetch_related('posts').get(username__iexact=self.kwargs.get('username'))
+            self.post_user = User.objects.prefetch_related('posts').get(username__iexact=self.kwargs.get('username'))
         except User.DoesNotExist:
             raise Http404
         else:
@@ -52,7 +53,7 @@ class PostDetail(SelectRelatedMixin, generic.DetailView):
         # get queryset for the post
         queryset = super().get_queryset()
         # filter the quesryset with the user's username
-        return quesryset.filter(user__username__iexact=self.kwargs.get('username'))
+        return queryset.filter(user__username__iexact=self.kwargs.get('username'))
 
 class CreatePost(LoginRequiredMixin,SelectRelatedMixin,generic.CreateView):
 
@@ -61,7 +62,7 @@ class CreatePost(LoginRequiredMixin,SelectRelatedMixin,generic.CreateView):
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
-        self.object.user = self.object.request.user
+        self.object.user = self.request.user
         self.object.save()
         return super().form_valid(form)
 

@@ -8,6 +8,7 @@ from django.views import generic
 from django.shortcuts import get_object_or_404
 
 from groups.models import Group,GroupMember
+from . import models
 
 class CreateGroup(LoginRequiredMixin,generic.CreateView):
     # Users should only be able to modify these two attributes of a group
@@ -22,38 +23,43 @@ class SingleGroup (generic.DetailView):
 class ListGroups(generic.ListView):
     model = Group
 
-class JoinGroup(LoginRequiredMixin,generic.RedirectView):
+class JoinGroup(LoginRequiredMixin, generic.RedirectView):
 
-    def get_redirect_url(self,*args,**kwargs):
-        return reverse('grpups:single',kwargs={'slug':self.kwargs.get('slug')})
+    def get_redirect_url(self, *args, **kwargs):
+        return reverse("groups:single",kwargs={"slug": self.kwargs.get("slug")})
 
-    def get(self,request,*args,**kwargs):
-        group = get_object_or_404(Group,self.kwargs.get('slug'))
+    def get(self, request, *args, **kwargs):
+        group = get_object_or_404(Group,slug=self.kwargs.get("slug"))
 
         try:
             # try to get the group member object, and create based on user and the group
-            GroupMember.objects.create(user=self.request.user, group=group)
+            GroupMember.objects.create(user=self.request.user,group=group)
         except IntegrityError:
-            messages.warning(self.request,'Warning. Already a member')
+            messages.warning(self.request,("Warning, already a member of {}".format(group.name)))
+
         else:
-            messages.succcess(self.request,'You are now a member')
-        return super().get(request,*args,**kwargs)
+            messages.success(self.request,"You are now a member of the {} group.".format(group.name))
+
+        return super().get(request, *args, **kwargs)
 
 
 class LeaveGroup(LoginRequiredMixin, generic.RedirectView):
 
     def get_redirect_url(self,*args,**kwargs):
-        return reverse('grpups:single',kwargs={'slug':self.kwargs.get('slug')})
+        return reverse('groups:single',kwargs={'slug':self.kwargs.get('slug')})
 
     def get(self,request,*args,**kwargs):
         try:
-            membership = models.GroupMember.objects.fitler(
+            membership = models.GroupMember.objects.filter(
                 user=self.request.user,
-                group__slug=self.kwargs.get('slug')
+                group__slug=self.kwargs.get("slug")
             ).get()
         except models.GroupMember.DoesNotExist:
             messages.warning(self.request,'Sorry you are not in this group.')
         else:
             membership.delete()
-            messages.succcess(self.request,'You have left the group.')
-        return super().get(request,*args,**kwargs)
+            messages.success(
+                self.request,
+                "You have successfully left this group."
+            )
+        return super().get(request, *args, **kwargs)
